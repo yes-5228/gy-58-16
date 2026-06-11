@@ -117,6 +117,41 @@ def settle_booking(booking_id: int) -> Booking:
     return paid
 
 
+def settle_order(order_id: str) -> dict:
+    order_bookings = [b for b in store.bookings.values() if b.order_id == order_id]
+    if not order_bookings:
+        raise HTTPException(status_code=404, detail="订单不存在")
+
+    settled = []
+    skipped = []
+    for booking in order_bookings:
+        if booking.status == "paid":
+            skipped.append({
+                "booking_id": booking.id,
+                "slot_label": booking.slot_label,
+                "reason": "已支付",
+            })
+            continue
+        if booking.status == "canceled":
+            skipped.append({
+                "booking_id": booking.id,
+                "slot_label": booking.slot_label,
+                "reason": "已取消",
+            })
+            continue
+        paid = booking.model_copy(update={"status": "paid"})
+        store.bookings[booking.id] = paid
+        settled.append(paid)
+
+    return {
+        "order_id": order_id,
+        "success_count": len(settled),
+        "skipped_count": len(skipped),
+        "skipped_items": skipped,
+        "bookings": settled + [b for b in order_bookings if b.status != "pending"],
+    }
+
+
 def cancel_booking(booking_id: int) -> Booking:
     booking = store.bookings.get(booking_id)
     if not booking:
@@ -129,21 +164,39 @@ def cancel_booking(booking_id: int) -> Booking:
     return canceled
 
 
-def cancel_order(order_id: str) -> list[Booking]:
+def cancel_order(order_id: str) -> dict:
     order_bookings = [b for b in store.bookings.values() if b.order_id == order_id]
     if not order_bookings:
         raise HTTPException(status_code=404, detail="订单不存在")
 
-    canceled_list = []
+    canceled = []
+    skipped = []
     for booking in order_bookings:
-        if booking.status == "canceled":
-            canceled_list.append(booking)
+        if booking.status == "paid":
+            skipped.append({
+                "booking_id": booking.id,
+                "slot_label": booking.slot_label,
+                "reason": "已支付，无法取消",
+            })
             continue
-        canceled = booking.model_copy(update={"status": "canceled"})
-        store.bookings[booking.id] = canceled
+        if booking.status == "canceled":
+            skipped.append({
+                "booking_id": booking.id,
+                "slot_label": booking.slot_label,
+                "reason": "已取消",
+            })
+            continue
+        canceled_booking = booking.model_copy(update={"status": "canceled"})
+        store.bookings[booking.id] = canceled_booking
         slot = store.time_slots.get(booking.slot_id)
         if slot:
             store.time_slots[slot.id] = slot.model_copy(update={"status": "available"})
-        canceled_list.append(canceled)
+        canceled.append(canceled_booking)
 
-    return canceled_list
+    return {
+        "order_id": order_id,
+        "success_count": len(canceled),
+        "skipped_count": len(skipped),
+        "skipped_items": skipped,
+        "bookings": canceled + [b for b in order_bookings if b.status == "paid" or b.status == "canceled"],
+    }

@@ -628,6 +628,85 @@ select {
   background: #fff;
 }
 
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 36, 30, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.confirm-dialog {
+  width: min(400px, 90%);
+  padding: 24px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #1a2421;
+}
+
+.confirm-desc {
+  margin: 0 0 12px;
+  color: #475852;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.confirm-detail {
+  margin: 0 0 20px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f7faf8;
+  color: #475852;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  border: 0;
+  color: #fff;
+  background: #0f6f58;
+}
+
+.btn-primary:hover {
+  background: #0c5a47;
+}
+
+.btn-secondary {
+  border: 1px solid #d4dfd9;
+  color: #475852;
+  background: #fff;
+}
+
+.btn-secondary:hover {
+  background: #f5f7f6;
+}
+
 .total-amount {
   color: #0f6f58;
   font-size: 18px;

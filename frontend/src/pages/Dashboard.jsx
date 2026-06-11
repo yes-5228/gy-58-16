@@ -112,6 +112,20 @@ export function Dashboard() {
     await refresh()
   }
 
+  async function handleSettleOrder(orderId) {
+    try {
+      const result = await api.settleOrder(orderId)
+      let msg = `已结算 ${result.success_count} 个时段`
+      if (result.skipped_count > 0) {
+        msg += `，${result.skipped_count} 个时段跳过（${result.skipped_items.map((i) => i.slot_label + ': ' + i.reason).join('；')}）`
+      }
+      setMessage(msg)
+      await refresh()
+    } catch (error) {
+      setMessage(error.message)
+    }
+  }
+
   async function handleCancel(bookingId) {
     await api.cancelBooking(bookingId)
     await refresh()
@@ -119,8 +133,12 @@ export function Dashboard() {
 
   async function handleCancelOrder(orderId) {
     try {
-      await api.cancelOrder(orderId)
-      setMessage('订单已取消')
+      const result = await api.cancelOrder(orderId)
+      let msg = `已取消 ${result.success_count} 个时段`
+      if (result.skipped_count > 0) {
+        msg += `，${result.skipped_count} 个时段无法取消（${result.skipped_items.map((i) => i.slot_label + ': ' + i.reason).join('；')}）`
+      }
+      setMessage(msg)
       await refresh()
     } catch (error) {
       setMessage(error.message)
@@ -157,7 +175,7 @@ export function Dashboard() {
           <BookingList
             bookings={bookings}
             courtsById={courtsById}
-            onSettle={handleSettle}
+            onSettleOrder={handleSettleOrder}
             onCancelOrder={handleCancelOrder}
           />
         </div>

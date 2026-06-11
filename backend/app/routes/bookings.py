@@ -27,11 +27,16 @@ def settle_booking(booking_id: int) -> Booking:
     return booking_service.settle_booking(booking_id)
 
 
+@router.post("/orders/{order_id}/settle")
+def settle_order(order_id: str):
+    return booking_service.settle_order(order_id)
+
+
 @router.post("/bookings/{booking_id}/cancel", response_model=Booking)
 def cancel_booking(booking_id: int) -> Booking:
     return booking_service.cancel_booking(booking_id)
 
 
-@router.post("/orders/{order_id}/cancel", response_model=list[Booking])
-def cancel_order(order_id: str) -> list[Booking]:
+@router.post("/orders/{order_id}/cancel")
+def cancel_order(order_id: str):
     return booking_service.cancel_order(order_id)

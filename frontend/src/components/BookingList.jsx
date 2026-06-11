@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BadgeCheck, ChevronDown, ChevronUp, CircleX, WalletCards } from 'lucide-react'
 
-export function BookingList({ bookings, courtsById, onSettle, onCancelOrder }) {
+export function BookingList({ bookings, courtsById, onSettleOrder, onCancelOrder }) {
   const orders = useMemo(() => {
     const map = new Map()
     for (const booking of bookings) {
@@ -31,6 +31,41 @@ export function BookingList({ bookings, courtsById, onSettle, onCancelOrder }) {
     return Array.from(map.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }, [bookings])
 
+  const [confirmOrder, setConfirmOrder] = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null)
+
+  function handleSettleClick(order) {
+    setConfirmOrder(order)
+    setConfirmAction('settle')
+  }
+
+  function handleCancelClick(order) {
+    setConfirmOrder(order)
+    setConfirmAction('cancel')
+  }
+
+  function closeConfirm() {
+    setConfirmOrder(null)
+    setConfirmAction(null)
+  }
+
+  async function handleConfirm() {
+    if (!confirmOrder || !confirmAction) return
+    try {
+      if (confirmAction === 'settle') {
+        await onSettleOrder(confirmOrder.orderId)
+      } else if (confirmAction === 'cancel') {
+        await onCancelOrder(confirmOrder.orderId)
+      }
+    } finally {
+      closeConfirm()
+    }
+  }
+
+  const pendingCount = confirmOrder
+    ? confirmOrder.slots.filter((s) => s.status === 'pending').length
+    : 0
+
   return (
     <section className="panel">
       <div className="section-title">
@@ -46,25 +81,57 @@ export function BookingList({ bookings, courtsById, onSettle, onCancelOrder }) {
             <OrderItem
               key={order.orderId}
               order={order}
-              onSettle={onSettle}
-              onCancelOrder={onCancelOrder}
+              onSettle={handleSettleClick}
+              onCancel={handleCancelClick}
             />
           ))
         )}
       </div>
+
+      {confirmOrder && (
+        <div className="confirm-overlay" onClick={closeConfirm}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <h3>
+              {confirmAction === 'settle' ? '确认结算' : '确认取消'}
+            </h3>
+            <p className="confirm-desc">
+              {confirmAction === 'settle'
+                ? `确定要结算订单 ${confirmOrder.orderId} 吗？`
+                : `确定要取消订单 ${confirmOrder.orderId} 吗？`}
+            </p>
+            {confirmAction === 'settle' && (
+              <p className="confirm-detail">
+                共 {pendingCount} 个待结算时段，合计 ¥{confirmOrder.totalPayable.toFixed(2)}
+              </p>
+            )}
+            {confirmAction === 'cancel' && (
+              <p className="confirm-detail">
+                已支付的时段将无法取消，仅取消待结算的 {pendingCount} 个时段
+              </p>
+            )}
+            <div className="confirm-actions">
+              <button className="btn-secondary" onClick={closeConfirm}>
+                再想想
+              </button>
+              <button className="btn-primary" onClick={handleConfirm}>
+                {confirmAction === 'settle' ? '确认结算' : '确认取消'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
 
-function OrderItem({ order, onSettle, onCancelOrder }) {
+function OrderItem({ order, onSettle, onCancel }) {
   const [expanded, setExpanded] = useState(false)
   const isAllCanceled = order.slots.every((s) => s.status === 'canceled')
   const isAllPaid = order.slots.every((s) => s.status === 'paid')
   const hasPending = order.slots.some((s) => s.status === 'pending')
+  const pendingCount = order.slots.filter((s) => s.status === 'pending').length
 
   const displayStatus = isAllCanceled ? 'canceled' : isAllPaid ? 'paid' : 'pending'
-
-  const pendingBookings = order.slots.filter((s) => s.status === 'pending')
 
   return (
     <article className={`order-item ${displayStatus}`}>
@@ -88,15 +155,14 @@ function OrderItem({ order, onSettle, onCancelOrder }) {
           {displayStatus === 'canceled' && '已取消'}
         </div>
         <div className="row-actions">
-          {pendingBookings.length === 1 && (
+          {hasPending && (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                onSettle(pendingBookings[0].id)
+                onSettle(order)
               }}
-              disabled={!hasPending}
-              title="结算"
+              title={pendingCount > 1 ? '整单结算' : '结算'}
             >
               <BadgeCheck size={16} />
             </button>
@@ -105,14 +171,21 @@ function OrderItem({ order, onSettle, onCancelOrder }) {
             type="button"
             onClick={(e) => {
               e.stopPropagation()
-              onCancelOrder(order.orderId)
+              onCancel(order)
             }}
-            disabled={isAllCanceled}
+            disabled={isAllCanceled || isAllPaid}
             title="整单取消"
           >
             <CircleX size={16} />
           </button>
-          <button type="button" className="expand-btn" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}>
+          <button
+            type="button"
+            className="expand-btn"
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded(!expanded)
+            }}
+          >
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
         </div>

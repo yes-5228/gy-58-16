@@ -41,6 +41,10 @@ export const api = {
     request(`/bookings/${bookingId}/settle`, {
       method: 'POST',
     }),
+  settleOrder: (orderId) =>
+    request(`/orders/${orderId}/settle`, {
+      method: 'POST',
+    }),
   cancelBooking: (bookingId) =>
     request(`/bookings/${bookingId}/cancel`, {
       method: 'POST',

@@ -29,3 +29,11 @@ class BatchBookingCreate(BaseModel):
     slot_ids: list[int] = Field(min_length=1)
     member_id: int = 1
     contact_name: str = Field(min_length=1)
+
+
+class OrderActionResult(BaseModel):
+    order_id: str
+    success_count: int
+    skipped_count: int
+    skipped_items: list[dict] = []
+    bookings: list
