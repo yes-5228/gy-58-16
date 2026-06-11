@@ -27,8 +27,11 @@ class TimeSlot(BaseModel):
 
 class Booking(BaseModel):
     id: int
+    order_id: str
     slot_id: int
+    slot_label: str
     court_id: int
+    court_name: str
     member_id: int
     member_name: str
     contact_name: str

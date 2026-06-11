@@ -117,6 +117,16 @@ export function Dashboard() {
     await refresh()
   }
 
+  async function handleCancelOrder(orderId) {
+    try {
+      await api.cancelOrder(orderId)
+      setMessage('订单已取消')
+      await refresh()
+    } catch (error) {
+      setMessage(error.message)
+    }
+  }
+
   const selectedSlotIds = selectedSlots.map((s) => s.id)
 
   return (
@@ -148,7 +158,7 @@ export function Dashboard() {
             bookings={bookings}
             courtsById={courtsById}
             onSettle={handleSettle}
-            onCancel={handleCancel}
+            onCancelOrder={handleCancelOrder}
           />
         </div>
       </div>

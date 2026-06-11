@@ -45,4 +45,8 @@ export const api = {
     request(`/bookings/${bookingId}/cancel`, {
       method: 'POST',
     }),
+  cancelOrder: (orderId) =>
+    request(`/orders/${orderId}/cancel`, {
+      method: 'POST',
+    }),
 }

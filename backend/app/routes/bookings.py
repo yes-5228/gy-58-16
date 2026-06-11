@@ -30,3 +30,8 @@ def settle_booking(booking_id: int) -> Booking:
 @router.post("/bookings/{booking_id}/cancel", response_model=Booking)
 def cancel_booking(booking_id: int) -> Booking:
     return booking_service.cancel_booking(booking_id)
+
+
+@router.post("/orders/{order_id}/cancel", response_model=list[Booking])
+def cancel_order(order_id: str) -> list[Booking]:
+    return booking_service.cancel_order(order_id)

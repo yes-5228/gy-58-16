@@ -13,6 +13,7 @@ class InMemoryStore:
         self.bookings: dict[int, Booking] = {}
         self._next_slot_id = 1
         self._next_booking_id = 1
+        self._next_order_id = 1
         self._seed()
 
     def next_booking_id(self) -> int:
@@ -24,6 +25,11 @@ class InMemoryStore:
         slot_id = self._next_slot_id
         self._next_slot_id += 1
         return slot_id
+
+    def next_order_id(self) -> str:
+        order_id = f"ORD-{self._next_order_id:06d}"
+        self._next_order_id += 1
+        return order_id
 
     def _seed(self) -> None:
         self.courts = {
