@@ -13,7 +13,7 @@ export function Dashboard() {
   const [slots, setSlots] = useState([])
   const [bookings, setBookings] = useState([])
   const [selectedDate, setSelectedDate] = useState(todayISO())
-  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [selectedSlots, setSelectedSlots] = useState([])
   const [contactName, setContactName] = useState('')
   const [memberId, setMemberId] = useState('1')
   const [message, setMessage] = useState('')
@@ -32,7 +32,7 @@ export function Dashboard() {
   async function loadSlots(date) {
     const slotData = await api.getTimeSlots(date)
     setSlots(slotData)
-    setSelectedSlot(null)
+    setSelectedSlots([])
   }
 
   useEffect(() => {
@@ -61,16 +61,35 @@ export function Dashboard() {
     await Promise.all([loadSlots(selectedDate), loadBaseData()])
   }
 
+  function handleSelectSlot(slot) {
+    setSelectedSlots((prev) => {
+      const exists = prev.some((s) => s.id === slot.id)
+      if (exists) {
+        return prev.filter((s) => s.id !== slot.id)
+      }
+      return [...prev, slot]
+    })
+  }
+
+  function handleRemoveSlot(slotId) {
+    setSelectedSlots((prev) => prev.filter((s) => s.id !== slotId))
+  }
+
+  function handleClearSlots() {
+    setSelectedSlots([])
+  }
+
   async function handleCreateBooking(event) {
     event.preventDefault()
-    if (!selectedSlot) return
+    if (selectedSlots.length === 0) return
     try {
-      await api.createBooking({
-        slot_id: selectedSlot.id,
+      const slotIds = selectedSlots.map((s) => s.id)
+      await api.createBatchBooking({
+        slot_ids: slotIds,
         member_id: Number(memberId),
         contact_name: contactName.trim(),
       })
-      setMessage('预约已提交，订单待结算')
+      setMessage(`包场预约成功，共 ${slotIds.length} 个时段`)
       setContactName('')
       await refresh()
     } catch (error) {
@@ -98,6 +117,8 @@ export function Dashboard() {
     await refresh()
   }
 
+  const selectedSlotIds = selectedSlots.map((s) => s.id)
+
   return (
     <main className="app-shell">
       <Header stats={stats} />
@@ -107,19 +128,21 @@ export function Dashboard() {
         <CourtSchedule
           courts={courts}
           slots={slots}
-          selectedSlotId={selectedSlot?.id}
-          onSelectSlot={setSelectedSlot}
+          selectedSlotIds={selectedSlotIds}
+          onSelectSlot={handleSelectSlot}
           onToggleBlock={handleToggleBlock}
         />
         <div className="side-stack">
           <BookingForm
             members={members}
-            selectedSlot={selectedSlot}
+            selectedSlots={selectedSlots}
             contactName={contactName}
             memberId={memberId}
             onContactName={setContactName}
             onMemberId={setMemberId}
             onSubmit={handleCreateBooking}
+            onRemoveSlot={handleRemoveSlot}
+            onClearSlots={handleClearSlots}
           />
           <BookingList
             bookings={bookings}

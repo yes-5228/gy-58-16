@@ -32,6 +32,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  createBatchBooking: (payload) =>
+    request('/bookings/batch', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   settleBooking: (bookingId) =>
     request(`/bookings/${bookingId}/settle`, {
       method: 'POST',

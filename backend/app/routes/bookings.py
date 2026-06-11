@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.models.domain import Booking
-from app.schemas import BookingCreate
+from app.schemas import BookingCreate, BatchBookingCreate
 from app.services import bookings as booking_service
 
 router = APIRouter(tags=["bookings"])
@@ -15,6 +15,11 @@ def list_bookings() -> list[Booking]:
 @router.post("/bookings", response_model=Booking, status_code=201)
 def create_booking(payload: BookingCreate) -> Booking:
     return booking_service.create_booking(payload)
+
+
+@router.post("/bookings/batch", response_model=list[Booking], status_code=201)
+def create_batch_booking(payload: BatchBookingCreate) -> list[Booking]:
+    return booking_service.create_batch_booking(payload)
 
 
 @router.post("/bookings/{booking_id}/settle", response_model=Booking)

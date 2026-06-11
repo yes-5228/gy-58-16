@@ -4,7 +4,7 @@ from fastapi import HTTPException
 
 from app.data.store import store
 from app.models.domain import Booking
-from app.schemas import BookingCreate
+from app.schemas import BookingCreate, BatchBookingCreate
 from app.services.settlement import calculate_payable
 
 
@@ -64,3 +64,41 @@ def cancel_booking(booking_id: int) -> Booking:
     if slot:
         store.time_slots[slot.id] = slot.model_copy(update={"status": "available"})
     return canceled
+
+
+def create_batch_booking(payload: BatchBookingCreate) -> list[Booking]:
+    member = store.members.get(payload.member_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="会员不存在")
+
+    resolved_slots = []
+    for slot_id in payload.slot_ids:
+        slot = store.time_slots.get(slot_id)
+        if not slot:
+            raise HTTPException(status_code=404, detail=f"时段 {slot_id} 不存在")
+        if slot.status != "available":
+            raise HTTPException(status_code=409, detail=f"时段 {slot.label} 不可预约")
+        resolved_slots.append(slot)
+
+    bookings = []
+    for slot in resolved_slots:
+        original, discount, payable = calculate_payable(slot, member)
+        booking_id = store.next_booking_id()
+        booking = Booking(
+            id=booking_id,
+            slot_id=slot.id,
+            court_id=slot.court_id,
+            member_id=member.id,
+            member_name=member.name,
+            contact_name=payload.contact_name,
+            original_amount=original,
+            discount_rate=discount,
+            payable_amount=payable,
+            status="pending",
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        store.bookings[booking_id] = booking
+        store.time_slots[slot.id] = slot.model_copy(update={"status": "booked"})
+        bookings.append(booking)
+
+    return bookings

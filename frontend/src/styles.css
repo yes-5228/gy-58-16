@@ -217,6 +217,10 @@ h2 {
   box-shadow: inset 0 0 0 1px #0f6f58;
 }
 
+.slot-card.selected {
+  background: #eaf5f1;
+}
+
 .slot-card.booked {
   color: #66746f;
   background: #f1f3f2;
@@ -417,4 +421,86 @@ select {
   .amount-block {
     text-align: left;
   }
+}
+
+.multi-badge {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0f6f58;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.clear-btn {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid #d4dfd9;
+  border-radius: 6px;
+  color: #6b4f4f;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.selected-slots-box {
+  padding: 12px;
+  border: 1px solid #dfe7e2;
+  border-radius: 6px;
+  background: #f7faf8;
+}
+
+.box-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #475852;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.box-empty {
+  color: #71817b;
+  font-size: 13px;
+}
+
+.selected-slot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.slot-chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid #0f6f58;
+  border-radius: 999px;
+  background: #eaf5f1;
+  color: #0f6f58;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #0f6f58;
+  background: transparent;
+}
+
+.chip-remove:hover {
+  background: rgba(15, 111, 88, 0.15);
+}
+
+.total-amount {
+  color: #0f6f58;
+  font-size: 18px;
 }

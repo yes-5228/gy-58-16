@@ -12,12 +12,17 @@ const statusIcon = {
   blocked: Ban,
 }
 
-export function CourtSchedule({ courts, slots, selectedSlotId, onSelectSlot, onToggleBlock }) {
+export function CourtSchedule({ courts, slots, selectedSlotIds, onSelectSlot, onToggleBlock }) {
+  const selectedSet = new Set(selectedSlotIds)
+
   return (
     <section className="panel schedule-panel">
       <div className="section-title">
         <Clock size={18} />
         <h2>场地时段管理</h2>
+        {selectedSlotIds.length > 0 && (
+          <span className="multi-badge">已选 {selectedSlotIds.length} 个时段</span>
+        )}
       </div>
       <div className="schedule-grid">
         {courts.map((court) => (
@@ -31,10 +36,11 @@ export function CourtSchedule({ courts, slots, selectedSlotId, onSelectSlot, onT
                 .filter((slot) => slot.court_id === court.id)
                 .map((slot) => {
                   const Icon = statusIcon[slot.status]
+                  const isSelected = selectedSet.has(slot.id)
                   return (
                     <button
                       type="button"
-                      className={`slot-card ${slot.status} ${selectedSlotId === slot.id ? 'selected' : ''}`}
+                      className={`slot-card ${slot.status} ${isSelected ? 'selected' : ''}`}
                       key={slot.id}
                       onClick={() => slot.status === 'available' && onSelectSlot(slot)}
                     >
